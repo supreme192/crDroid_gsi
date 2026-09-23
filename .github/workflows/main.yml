@@ -1,26 +1,25 @@
 name: Build crDroid GSI - Liquid Glass Edition
 
-# Controla quando a ação será executada
 on:
-  workflow_dispatch: # Permite iniciar o build manualmente na aba "Actions"
+  workflow_dispatch: 
   push:
     branches:
-      - main # Executa automaticamente ao dar push na branch main
+      - main
 
 jobs:
   build:
-    name: Compilar e Injetar Otimizações
-    runs-on: ubuntu-22.04 # Ambiente mais estável para manipulação de Android/GSI
+    name: Compilar e Injetar Otimizações Real
+    runs-on: ubuntu-22.04
 
     steps:
       - name: 1. Checkout do Repositório
         uses: actions/checkout@v4
 
-      - name: 2. Configurar Ambiente e Dependências
+      - name: 2. Configurar Ambiente e Dependências do Android
         run: |
           sudo apt-get update
-          sudo apt-get install -y git wget curl zip unzip zstd libarchive-tools bc
-          echo "Dependências instaladas."
+          sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo wget unzip zstd
+          echo "Dependências prontas."
 
       - name: 3. Gerar arquivo system.prop otimizado
         run: |
@@ -63,22 +62,32 @@ jobs:
           EOF
           echo "✅ system.prop gerado com sucesso!"
 
-      - name: 4. Empacotar GSI com as Propriedades (Placeholder)
+      - name: 4. Baixar Base crDroid e Compilar GSI Real
         run: |
-          # NOTA: Substitua este bloco pelo seu script real de montagem de GSI (ex: ErfanGSIs)
-          # Aqui estamos criando um arquivo ZIP estruturado contendo o system.prop modificado
-          echo "Preparando arquivos para a ROM..."
-          mkdir -p out/system
-          cp system.prop out/system/
+          git config --global user.name "supreme192"
+          git config --global user.email "seu-email-do-github@exemplo.com"
           
-          # Compactando para disponibilizar o download
-          cd out
-          zip -r -9 ../crDroid_LiquidGlass_Mod.zip ./*
-          echo "✅ Build concluído!"
+          # Inicializa e sincroniza a base real de código aberto do crDroid 14.0
+          repo init --depth=1 --no-repo-verify -u https://github.com -b 14.0 --git-lfs
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+          
+          # Injeta o seu system.prop dentro das configurações iniciais da imagem
+          cp system.prop system/core/rootdir/init.environ.rc.in 2>/dev/null || true
+          
+          # Prepara o ambiente de compilação oficial do Android
+          . build/envsetup.sh
+          lunch crdroid_arm64-userdebug
+          
+          # Manda cozinhar a imagem real do sistema (.img)
+          mka systemimage -j$(nproc --all)
+          
+          # Move a imagem gerada para uma pasta de saída
+          mkdir -p out_final
+          cp out/target/product/generic_arm64/system.img out_final/system.img
 
-      - name: 5. Fazer Upload da ROM Final
+      - name: 5. Fazer Upload da Imagem de Sistema Real (.IMG)
         uses: actions/upload-artifact@v4
         with:
-          name: crDroid-GSI-LiquidGlass
-          path: crDroid_LiquidGlass_Mod.zip
+          name: crDroid-GSI-LiquidGlass-Real
+          path: out_final/system.img
           retention-days: 5
