@@ -1,25 +1,9 @@
-name: Compilar Meu Software Liquid Glass
-
-on:
-  workflow_dispatch: # Cria o botão manual para você iniciar quando quiser
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Baixando as modificações do seu GitHub
-      uses: actions/checkout@v4
-
-    - name: Configurando as Ferramentas do Servidor
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo
-
-    - name: Baixando a Base Pronta e Compilando
-      run: |
-        git config --global user.name "supreme192"
-        git config --global user.email "seu-email-do-github@exemplo.com"
-        repo init --depth=1 --no-repo-verify -u https://github.com -b 14.0 --git-lfs
-        # Junta o seu system.prop perfeito ao código do crDroid
-        cp system.prop system/core/rootdir/init.environ.rc.in 2>/dev/null || true
-        echo "Pronto para gerar a imagem final do sistema!"
+- name: First interaction
+  uses: actions/first-interaction@v1.3.0
+  with:
+    # Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}
+    repo-token: 
+    # Comment to post on an individual's first issue
+    issue-message: # optional
+    # Comment to post on an individual's first pull request
+    pr-message: # optional
