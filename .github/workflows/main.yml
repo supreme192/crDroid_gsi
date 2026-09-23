@@ -1,9 +1,84 @@
-- name: First interaction
-  uses: actions/first-interaction@v1.3.0
-  with:
-    # Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}
-    repo-token: 
-    # Comment to post on an individual's first issue
-    issue-message: # optional
-    # Comment to post on an individual's first pull request
-    pr-message: # optional
+name: Build crDroid GSI - Liquid Glass Edition
+
+# Controla quando a ação será executada
+on:
+  workflow_dispatch: # Permite iniciar o build manualmente na aba "Actions"
+  push:
+    branches:
+      - main # Executa automaticamente ao dar push na branch main
+
+jobs:
+  build:
+    name: Compilar e Injetar Otimizações
+    runs-on: ubuntu-22.04 # Ambiente mais estável para manipulação de Android/GSI
+
+    steps:
+      - name: 1. Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Ambiente e Dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git wget curl zip unzip zstd bsdtar bc
+          echo "Dependências instaladas."
+
+      - name: 3. Gerar arquivo system.prop otimizado
+        run: |
+          cat << 'EOF' > system.prop
+          # ==========================================
+          # MOTOR VISUAL LIQUID GLASS & FLUIDEZ 144HZ+
+          # ==========================================
+          ro.surface_flinger.supports_background_blur=1
+          ro.surface_flinger.use_color_management=true
+          ro.surface_flinger.has_wide_color_display=true
+          ro.surface_flinger.has_HDR_display=true
+          ro.surface_flinger.max_frame_rate=144
+          
+          # Renderizador nativo (SkiaVK) com composição dinâmica
+          debug.hwui.renderer=skiavk
+          debug.composition.type=dyn
+          debug.sf.latch_unsignaled=1
+          ro.physics.animation.spring=true
+          
+          # ==========================================
+          # MODO JOGO, LATÊNCIA ZERO E TOQUE
+          # ==========================================
+          persist.sys.game.perf_mode=1
+          ro.config.game_mode_boost=true
+          ro.joy.game_mode.enabled=1
+          touch.pressure.scale=0.001
+          view.scroll_friction=0.008
+          debug.egl.hw=1
+          debug.egl.profiler=0
+          video.accelerate.hw=1
+          
+          # ==========================================
+          # GERENCIAMENTO INTELIGENTE (FLAGSHIP) & ART
+          # ==========================================
+          ro.sys.fw.bg_apps_limit=32
+          ro.vendor.qti.sys.fw.bservice_enable=true
+          persist.sys.purgeable_assets=1
+          dalvik.vm.dex2oat-filter=speed-profile
+          dalvik.vm.image-dex2oat-filter=speed-profile
+          EOF
+          echo "✅ system.prop gerado com sucesso!"
+
+      - name: 4. Empacotar GSI com as Propriedades (Placeholder)
+        run: |
+          # NOTA: Substitua este bloco pelo seu script real de montagem de GSI (ex: ErfanGSIs)
+          # Aqui estamos criando um arquivo ZIP estruturado contendo o system.prop modificado
+          echo "Preparando arquivos para a ROM..."
+          mkdir -p out/system
+          cp system.prop out/system/
+          
+          # Compactando para disponibilizar o download
+          cd out
+          zip -r -9 ../crDroid_LiquidGlass_Mod.zip ./*
+          echo "✅ Build concluído!"
+
+      - name: 5. Fazer Upload da ROM Final
+        uses: actions/upload-artifact@v4
+        with:
+          name: crDroid-GSI-LiquidGlass
+          path: crDroid_LiquidGlass_Mod.zip
+          retention-days: 5
