@@ -19,7 +19,7 @@ jobs:
       - name: 2. Configurar Ambiente e Dependências
         run: |
           sudo apt-get update
-          sudo apt-get install -y git wget curl zip unzip zstd bsdtar bc
+          sudo apt-get install -y git wget curl zip unzip zstd libarchive-tools bc
           echo "Dependências instaladas."
 
       - name: 3. Gerar arquivo system.prop otimizado
