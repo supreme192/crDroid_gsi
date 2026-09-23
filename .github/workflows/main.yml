@@ -68,7 +68,7 @@ jobs:
           git config --global user.email "seu-email-do-github@exemplo.com"
           
           # Inicializa e sincroniza a base real de código aberto do crDroid 14.0
-          repo init --depth=1 --no-repo-verify -u https://github.com -b 14.0 --git-lfs
+          repo init --depth=1 --no-repo-verify -u https://github.com -b 14.0
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
           
           # Injeta o seu system.prop dentro das configurações iniciais da imagem
